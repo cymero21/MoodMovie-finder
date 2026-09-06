@@ -240,9 +240,6 @@
       <button class="btn-primary" id="submitBtn" type="submit">Find something</button>
     </form>
 
-    <div class="meta-row">
-      <button class="btn-link" id="demoBtn" type="button">try it with sample data instead</button>
-    </div>
 
     <p class="status" id="status"></p>
     <p class="error" id="error"></p>
@@ -254,12 +251,6 @@
     // Change this if your backend runs somewhere other than localhost.
     const BACKEND_URL = "https://movie-finder-backend-wuw6.onrender.com";
 
-    const DEMO_MOVIES = [
-      { id: 1, title: "Paddington 2", year: "2017", rating: 8.1, poster: null },
-      { id: 2, title: "Amélie", year: "2001", rating: 7.9, poster: null },
-      { id: 3, title: "Chef", year: "2014", rating: 7.3, poster: null },
-      { id: 4, title: "The Grand Budapest Hotel", year: "2014", rating: 8.1, poster: null },
-    ];
 
     const form = document.getElementById("searchForm");
     const feelingInput = document.getElementById("feeling");
