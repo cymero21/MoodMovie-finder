@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mood → Movie</title>
+
+<style>
+  :root {
+    --ink: #EDEAE3;
+    --ink-dim: #A6A29A;
+    --night: #12141C;
+    --night-deep: #0B0C11;
+    --marquee: #E8A33D;
+    --marquee-dim: #7A5A26;
+    --rose: #C1707C;
+    --line: rgba(237,234,227,0.14);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, #1B1E2B 0%, var(--night) 55%, var(--night-deep) 100%);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    min-height: 100vh;
+    padding: 48px 20px 64px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 44px);
+    line-height: 1.15;
+    margin: 0 0 8px;
+    font-weight: 500;
+  }
+  h1 em { font-style: italic; color: var(--marquee); }
+  .sub {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink-dim);
+    font-size: 15px;
+    margin: 0 0 32px;
+    max-width: 46ch;
+  }
+  form {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  #feeling {
+    flex: 1;
+    min-width: 220px;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 19px;
+    font-style: italic;
+    padding: 8px 2px;
+    outline: none;
+  }
+  #feeling::placeholder { color: var(--ink-dim); opacity: 0.7; }
+  button {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--marquee);
+    color: var(--night-deep);
+    border: none;
+    border-radius: 3px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: #F2B25A; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-link {
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    font-size: 13px;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .btn-link:hover { color: var(--ink); }
+  .meta-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 28px;
+  }
+  .status {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    color: var(--marquee);
+    margin: 24px 0 4px;
+    display: none;
+  }
+  .error {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    color: var(--rose);
+    margin: 14px 0 0;
+    display: none;
+  }
+  .note {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    margin: 28px 0 20px;
+    padding-left: 14px;
+    border-left: 2px solid var(--marquee-dim);
+    display: none;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(237,234,227,0.03);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .card:hover { border-color: var(--marquee-dim); transform: translateY(-2px); }
+  .poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    background: var(--night-deep);
+    display: block;
+  }
+  .poster-fallback {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background: linear-gradient(160deg, #1B1E2B, var(--night-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--ink-dim);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-align: center;
+    padding: 10px;
+  }
+  .card-body { padding: 10px 11px 12px; }
+  .card-title {
+    font-size: 14.5px;
+    line-height: 1.3;
+    margin: 0 0 3px;
+  }
+  .card-meta {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    body {
+      padding: 30px 16px 48px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 9vw, 38px);
+    }
+
+    .sub {
+      font-size: 14px;
+      margin-bottom: 26px;
+    }
+
+    form {
+      display: block;
+    }
+
+    #feeling {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px 18px;
+    }
+
+    .meta-row {
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card-body {
+      padding: 8px 9px 10px;
+    }
+
+    .card-title {
+      font-size: 13.5px;
+    }
+
+    .card-meta {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">a small tool for indecisive nights</p>
+    <h1>Don't know what to watch?<br /><em>Give me a mood.</em></h1>
+    <p class="sub">One or two words does it — "lonely," "restless," "want something cozy." Short beats detailed here..</p>
+
+    <form id="searchForm">
+      <input id="feeling" placeholder="e.g. restless and a bit lonely tonight…" autocomplete="off" />
+      <button class="btn-primary" id="submitBtn" type="submit">Find something</button>
+    </form>
+
+    <div class="meta-row">
+      <button class="btn-link" id="demoBtn" type="button">try it with sample data instead</button>
+    </div>
+
+    <p class="status" id="status"></p>
+    <p class="error" id="error"></p>
+    <p class="note" id="note"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <script>
+    // Change this if your backend runs somewhere other than localhost.
+    const BACKEND_URL = "https://movie-finder-backend-wuw6.onrender.com";
+
+    const DEMO_MOVIES = [
+      { id: 1, title: "Paddington 2", year: "2017", rating: 8.1, poster: null },
+      { id: 2, title: "Amélie", year: "2001", rating: 7.9, poster: null },
+      { id: 3, title: "Chef", year: "2014", rating: 7.3, poster: null },
+      { id: 4, title: "The Grand Budapest Hotel", year: "2014", rating: 8.1, poster: null },
+    ];
+
+    const form = document.getElementById("searchForm");
+    const feelingInput = document.getElementById("feeling");
+    const submitBtn = document.getElementById("submitBtn");
+    const demoBtn = document.getElementById("demoBtn");
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+    const noteEl = document.getElementById("note");
+    const gridEl = document.getElementById("grid");
+
+    function showStatus(text) {
+      statusEl.textContent = text;
+      statusEl.style.display = text ? "block" : "none";
+    }
+    function showError(text) {
+      errorEl.textContent = text;
+      errorEl.style.display = text ? "block" : "none";
+    }
+    function showNote(html) {
+      noteEl.innerHTML = html;
+      noteEl.style.display = html ? "block" : "none";
+    }
+    function renderMovies(movies) {
+      gridEl.innerHTML = "";
+      for (const m of movies) {
+        const a = document.createElement("a");
+        a.className = "card";
+        a.href = m.poster ? `https://www.themoviedb.org/movie/${m.id}` : "#";
+        a.target = "_blank";
+        a.rel = "noreferrer";
+
+        const media = m.poster
+          ? `<img class="poster" src="${m.poster}" alt="${m.title} poster" />`
+          : `<div class="poster-fallback">${m.title}</div>`;
+
+        a.innerHTML = `
+          ${media}
+          <div class="card-body">
+            <p class="card-title">${m.title}</p>
+            <p class="card-meta">${m.year} · ★ ${Number(m.rating).toFixed(1)}</p>
+          </div>
+        `;
+        gridEl.appendChild(a);
+      }
+    }
+
+    async function classifyFeeling(feeling) {
+      const res = await fetch(`${BACKEND_URL}/api/classify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feeling }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Classification failed.");
+      return data;
+    }
+
+    async function fetchMovies(genreId, exclude) {
+      const res = await fetch(`${BACKEND_URL}/api/movies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ genreId, exclude }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Fetching movies failed.");
+      return data.movies;
+    }
+
+    async function runSearch(isDemo) {
+      const feeling = feelingInput.value.trim();
+      if (!isDemo && !feeling) return;
+
+      showError("");
+      showNote("");
+      gridEl.innerHTML = "";
+      submitBtn.disabled = true;
+
+      try {
+        if (isDemo) {
+          showStatus("reading the room…");
+          await new Promise((r) => setTimeout(r, 400));
+          showStatus("pulling a shortlist…");
+          await new Promise((r) => setTimeout(r, 300));
+          showNote(`Landed on <strong>Comedy</strong> (feel-good) — this is sample data, plug in a real search to see it work live.`);
+          renderMovies(DEMO_MOVIES);
+        } else {
+          showStatus("reading the room…");
+          const classification = await classifyFeeling(feeling);
+          showStatus("pulling a shortlist…");
+          const movies = await fetchMovies(classification.genreId, classification.exclude);
+          showNote(`Landed on <strong>${classification.genreName}</strong> (${classification.tone}) — ${classification.note}`);
+          renderMovies(movies);
+        }
+      } catch (err) {
+        showError(err.message || "Something went wrong. Is the backend server running?");
+      } finally {
+        showStatus("");
+        submitBtn.disabled = false;
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runSearch(false);
+    });
+    demoBtn.addEventListener("click", () => runSearch(true));
+  </script>
+</body>
+</html>
